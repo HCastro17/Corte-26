@@ -1,11 +1,16 @@
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Filtra campos no definidos en los DTOs y valida tipos
+  // Permitir peticiones desde la app de Angular
+  app.enableCors({
+    origin: 'http://localhost:4200',
+    credentials: true,
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -14,10 +19,8 @@ async function bootstrap() {
     }),
   );
 
-  // Habilitar CORS para cuando conectes Angular
-  app.enableCors();
-
-  await app.listen(3000);
-  console.log('Servidor corriendo en http://localhost:3000');
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+  console.log(`Backend corriendo en http://localhost:${port}`);
 }
 bootstrap();

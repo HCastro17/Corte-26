@@ -1,75 +1,82 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 enum Role {
-  CLIENTE
-  BARBERO
+  CLIENT
+  BARBER
   ADMIN
 }
 
 enum AccountStatus {
-  ACTIVA
-  BLOQUEADA
+  ACTIVE
+  BLOCKED
 }
 
 enum AppointmentStatus {
-  PENDIENTE
-  COMPLETADA
-  CANCELADA
-  AUSENTE
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
 }
 
 model User {
-  id            Int           @id @default(autoincrement())
-  email         String        @unique
-  name          String
-  role          Role          @default(CLIENTE)
-  birthDate     DateTime?
-  points        Int           @default(0)
-  strikes       Int           @default(0)
-  accountStatus AccountStatus @default(ACTIVA)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                  Int               @id @default(autoincrement())
+  email               String            @unique
+  name                String
+  phone               String?
+  birthDate           DateTime?
+  role                Role              @default(CLIENT)
+  points              Int               @default(0)
+  strikes             Int               @default(0)
+  accountStatus       AccountStatus     @default(ACTIVE)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
-  appointmentsAsClient Appointment[] @relation("ClientAppointments")
-  appointmentsAsBarber Appointment[] @relation("BarberAppointments")
+  clientAppointments  Appointment[]     @relation("ClientAppointments")
+  barberAppointments  Appointment[]     @relation("BarberAppointments")
 }
 
 model Service {
-  id              Int           @id @default(autoincrement())
-  name            String
-  description     String?
-  price           Float         
-  durationMinutes Int           
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id                  Int               @id @default(autoincrement())
+  name                String
+  description         String?
+  price               Decimal           @db.Decimal(10, 2)
+  durationMinutes     Int
+  requiredPoints      Int?
+  isActive            Boolean           @default(true)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
-  appointments    Appointment[]
+  appointments        Appointment[]
 }
 
 model Appointment {
-  id            Int               @id @default(autoincrement())
-  startTime     DateTime
-  endTime       DateTime          
-  status        AppointmentStatus @default(PENDIENTE)
-  priceCharged  Float             
-  pointsAwarded Int               
+  id                  Int               @id @default(autoincrement())
+  clientId            Int
+  barberId            Int
+  serviceId           Int
+  startTime           DateTime
+  endTime             DateTime
+  status              AppointmentStatus @default(PENDING)
 
-  clientId      Int
-  client        User              @relation("ClientAppointments", fields: [clientId], references: [id])
+  chargedPrice        Decimal           @db.Decimal(10, 2)
+  earnedPoints        Int               @default(0)
+  paidWithPoints      Boolean           @default(false)
 
-  barberId      Int
-  barber        User              @relation("BarberAppointments", fields: [barberId], references: [id])
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
-  serviceId     Int
-  service       Service           @relation(fields: [serviceId], references: [id])
+  client              User              @relation("ClientAppointments", fields: [clientId], references: [id])
+  barber              User              @relation("BarberAppointments", fields: [barberId], references: [id])
+  service             Service           @relation(fields: [serviceId], references: [id])
 
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  @@index([barberId, startTime])
+  @@index([clientId])
 }

@@ -3,10 +3,11 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ServicesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async findAll() {
     return this.prisma.service.findMany({
+      where: { isActive: true },
       orderBy: { price: 'asc' },
     });
   }
@@ -16,7 +17,7 @@ export class ServicesService {
       where: { id },
     });
     if (!service) {
-      throw new NotFoundException(`Servicio con ID ${id} no encontrado`);
+      throw new NotFoundException(`Service with ID ${id} not found`);
     }
     return service;
   }

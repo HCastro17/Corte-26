@@ -5,3 +5,6 @@
 
   Para abrir prisma
   npx prisma studio
+
+  Para correr el servidor
+  npm run start:dev

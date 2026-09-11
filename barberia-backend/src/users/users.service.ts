@@ -9,7 +9,7 @@ export class UsersService {
   async getBarbers() {
     return this.prisma.user.findMany({
       where: {
-        role: Role.BARBERO,
+        role: Role.BARBER,
       },
       select: {
         id: true,
