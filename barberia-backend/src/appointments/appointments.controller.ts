@@ -3,6 +3,11 @@ import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from '../dto/create-appointment.dto';
 import { GetAvailableSlotsDto } from '../dto/get-available-slots.dto';
 import { AppointmentStatus } from '@prisma/client';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('appointments')
 export class AppointmentsController {
@@ -23,6 +28,9 @@ export class AppointmentsController {
   }
 
   @Patch(':id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.BARBER, Role.ADMIN)
+  
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body('status') status: AppointmentStatus,
@@ -34,4 +42,5 @@ export class AppointmentsController {
   cancel(@Param('id', ParseIntPipe) id: number) {
     return this.appointmentsService.cancelByClient(id);
   }
+
 }
